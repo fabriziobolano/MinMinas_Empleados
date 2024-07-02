@@ -1,0 +1,366 @@
+﻿@page "/empleado"
+@attribute [Authorize]
+@rendermode RenderMode.InteractiveServer
+
+@using PruebaMME.Models
+
+@inject NavigationManager NavigationManager
+@inject NotificationService notificationService
+@inject TooltipService tooltipService
+@inject DialogService  DialogService
+
+<h3>Empleado</h3>
+
+@if (ListaNegempleado == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+     <RadzenFieldset Text="Empleados">
+        <RadzenRow JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1">
+            <RadzenColumn Size="1">
+            <RadzenButton Click=@(args => NuevoEmpleado()) ButtonType="ButtonType.Submit" Text="Nuevo" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" MouseEnter="@(args => ShowTooltip("Adicionar Nuevo", args, new TooltipOptions(){ Position = TooltipPosition.Top }))" Visible=@(!Editando) />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Gap="1">
+    @if (Editando == true)
+    {
+        <RadzenCard Class="rz-my-12 rz-mx-auto">
+            <RadzenTemplateForm TItem="Negempleado" Data="@oEmpleado" Submit="@(async (Negempleado args) => { await GuardarRegistro(args); })">
+                <RadzenFieldset Text="Empleados">
+                    <RadzenStack Gap="1rem">
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Identificador" Component="txtId" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Identificador del Proyecto" Style="width: 100%;">
+                                    <RadzenNumeric Value="@oEmpleado.Id" Style="width: 100%;" Name="txtId" Disabled="true" />
+                                </RadzenFormField>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Nombre" Component="txtNombre" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Nombre del empleado" Style="width: 100%;">
+                                    <RadzenTextBox @bind-Value="oEmpleado.Nombre" Style="width: 100%;" Name="txtNombre" />
+                                    <RadzenRequiredValidator Component="txtNombre" Text="El nombre es obligatorio" Style="position: absolute" />
+                                </RadzenFormField>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Apellido" Component="txtApellido" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Apellido del empleado" Style="width: 100%;">
+                                    <RadzenTextBox @bind-Value="oEmpleado.Apellido" Style="width: 100%;" Name="txtApellido" />
+                                    <RadzenRequiredValidator Component="txtApellido" Text="El apellido es obligatorio" Style="position: absolute" />
+                                </RadzenFormField>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Tipo de documento" Component="ddTipodocumento" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Tipo de documento" Style="width: 100%;">
+                                    <RadzenDropDown @bind-Value="@oEmpleado.Idtipodocumento" ValueProperty="Id" TextProperty="Nombre" Data=@listaTipoDocumento Name="ddTipodocumento" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true" />
+                                    <RadzenRequiredValidator Component="ddTipodocumento" Text="Seleccione" Style="position: relative" />
+                                </RadzenFormField>.
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Numero Documento" Component="txtNumDoc" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Numero Documento" Style="width: 100%;">
+                                    <RadzenNumeric TValue="decimal?" @bind-Value="@oEmpleado.Numerodocumento" Change="DeterminaTipoEmpleado" Style="width: 100%;" Name="txtNumDoc" />
+@*                                     <RadzenNumericRangeValidator Component="txtNumDoc" Min="1" Text="El numero de docuemnto debe ser mayor a cero" Style="position: absolute" /> *@
+                                </RadzenFormField>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Tipo empleado" Component="txtTipoEmpleado" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Tipo empleado" Style="width: 100%;">
+                                    <RadzenTextBox @bind-Value="oEmpleado.Tipoempleado" Style="width: 100%;" Name="txtTipoEmpleado" Disabled="true" />
+                                </RadzenFormField>.
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Oficina" Component="ddOficina" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenFormField Text="Oficina" Style="width: 100%;">
+                                            <RadzenDropDown @bind-Value="@oEmpleado.Idoficina" ValueProperty="Id" TextProperty="Nombre" Data=@listaOficina Name="ddOficina" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true" />
+                                            <RadzenRequiredValidator Component="ddOficina" Text="Seleccione" Style="position: relative" />
+                                </RadzenFormField>.
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1">
+                            <RadzenColumn Size="1">
+                                <RadzenButton ButtonType="ButtonType.Submit" Icon="save" MouseEnter="@(args => ShowTooltip("Guardar Registro", args, new TooltipOptions(){ Position = TooltipPosition.Top }))" ButtonStyle="ButtonStyle.Primary" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="1">
+                                <RadzenButton ButtonType="ButtonType.Button" Click="@Cancelar" Icon="cancel" MouseEnter="@(args => ShowTooltip("Cancelar", args, new TooltipOptions(){ Position = TooltipPosition.Top }))" ButtonStyle="ButtonStyle.Secondary" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenStack>
+                </RadzenFieldset>
+            </RadzenTemplateForm>
+        </RadzenCard>
+    }
+    else
+    {
+        <RadzenCard Class="rz-my-12 rz-mx-auto">
+
+            <RadzenFieldset Text="Lista de Empleados">
+                <RadzenRow JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1">
+                    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="15" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                            Data="@ListaBuscarNegempleado" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single">
+                        <EmptyTemplate>
+                            <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No hay datos para mostrar.</p>
+                        </EmptyTemplate>
+                        <Columns>
+                            <RadzenDataGridColumn Property="Id" Title="ID" Frozen="true" Width="5%" TextAlign="TextAlign.Center" />
+                            <RadzenDataGridColumn Property="Nombre" Title="Nombre" Width="40%" />
+                            <RadzenDataGridColumn Property="Apellido" Title="Apellido" Width="40%" />
+                            <RadzenDataGridColumn Filterable="false" Width="5%">
+                                <Template Context="data">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(args =>  AccionMenu(2,data.Id))" MouseEnter="@(args => ShowTooltip("Eliminar", args, new TooltipOptions() { Position = TooltipPosition.Top }))"></RadzenButton>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenRow>
+            </RadzenFieldset>
+
+        </RadzenCard>
+
+
+        <RadzenCard>
+            <RadzenRow JustifyContent="JustifyContent.Left" AlignItems="AlignItems.Start" Gap="1">
+                <RadzenColumn Size="12">
+                            <RadzenNumeric @bind-Value="@valorBuscar" Style="width: 100%;" Name="txtBuscarId" />
+
+                </RadzenColumn>
+
+                <RadzenColumn Size="12">
+                    <RadzenButton Click=@(args => BuscarEmpleado()) ButtonType="ButtonType.Submit" Text="Buscar" />
+                </RadzenColumn>
+                        <RadzenColumn Size="12">
+                        <RadzenLabel Text="@Mensajeencontrado" />
+                        </RadzenColumn>
+            </RadzenRow>
+            
+        </RadzenCard>
+    }
+
+        </RadzenRow>
+    </RadzenFieldset>
+
+}
+
+
+@code {
+
+    //Definición de Variables
+    List<Negempleado>? ListaNegempleado = new();
+    List<Negempleado>? ListaBuscarNegempleado = new();
+    Negempleado oEmpleado = new Negempleado();
+    List<NegtipoDocumento>? listaTipoDocumento = new List<NegtipoDocumento>();
+    List<Negoficina>? listaOficina = new List<Negoficina>();
+    // Inyectar HttpClient
+    [Inject]
+    private HttpClient httpClient { get; set; }
+    //Identifica que esta editando empleado    
+    bool Editando = false;
+    //Identifica el Id seleccionado
+    int IdSeleccionado = 0;
+    //Variable para buscar empleado
+    int valorBuscar = 0;
+    //Mensaje busqueda de empleados
+    string Mensajeencontrado = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Mensajeencontrado = string.Empty;
+            listaTipoDocumento = await httpClient.GetFromJsonAsync<List<NegtipoDocumento>>("https://localhost:7083/api/NegtipoDocumento");
+            listaOficina = await httpClient.GetFromJsonAsync<List<Negoficina>>("https://localhost:7083/api/Negoficina");
+            ListaNegempleado = await httpClient.GetFromJsonAsync<List<Negempleado>>("https://localhost:7083/api/Negempleado");
+            ListaBuscarNegempleado = ListaNegempleado;
+            oEmpleado.Tipoempleado= "Persona";
+            oEmpleado.Numerodocumento = 0;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await ShowNotification(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error en el proceso",
+                    Detail = ex.Message,
+                    Duration = 3000
+                });
+        }
+    }
+
+    void BuscarEmpleado()
+    {
+        Mensajeencontrado = string.Empty;
+        ListaBuscarNegempleado = ListaNegempleado;
+        var encontrar = ListaBuscarNegempleado.Where(x => x.Id == valorBuscar).ToList().FirstOrDefault();
+        if (encontrar != null)
+        {
+            Mensajeencontrado = "Encontrado";
+            ListaBuscarNegempleado = ListaBuscarNegempleado.Where(x => x.Id == valorBuscar).ToList();
+        }
+        else
+        {
+            Mensajeencontrado = "NO ENCONTRADO!!";
+            ListaBuscarNegempleado = ListaNegempleado;
+        }
+        StateHasChanged();
+    }
+
+    async Task GuardarRegistro(Negempleado args)
+    {
+        try
+        {
+            if (args.Id > 0)
+            {
+                await httpClient.PutAsJsonAsync("https://localhost:7083/api/Negempleado/" + IdSeleccionado, args);
+                
+                await ShowNotification(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Registro Actualizado",
+                    Detail = "El registro se actualizó correctamente",
+                    Duration = 3000
+                });
+            }
+            else
+            {
+                args.Activo = true;
+
+                await httpClient.PostAsJsonAsync("https://localhost:7083/api/Negempleado", args);
+                await ShowNotification(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Registro Guardado",
+                    Detail = "El registro se guardó correctamente",
+                    Duration = 3000
+                });
+            }
+
+            NavigationManager.NavigateTo("/empleado",true);
+        }
+        catch (Exception ex)
+        {
+            await ShowNotification(new NotificationMessage()
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error en el proceso",
+                Detail = ex.Message,
+                Duration = 3000
+            });
+        }
+    }
+
+    private async void Cancelar()
+    {
+        //Cancelar y regresar al listado
+        Editando = false;
+    }
+
+
+    void NuevoEmpleado()
+    {
+        IdSeleccionado = 0;
+        Editando = true;
+    }
+
+    void DeterminaTipoEmpleado()
+    {
+
+        string numeroComoTexto = oEmpleado.Numerodocumento.ToString()??"0"; // Convertir el decimal a una cadena de texto
+
+        if (numeroComoTexto.StartsWith("800"))
+        {
+            oEmpleado.Tipoempleado= "Empresa";
+        }
+        else
+        {
+            oEmpleado.Tipoempleado= "Persona";
+        }
+    }
+
+    async Task AccionMenu(int item, int Id)
+    {
+        switch (item)
+        {
+            case 1:
+                IdSeleccionado = Id;
+                break;
+            case 2:
+                IdSeleccionado = Id;
+                await Eliminar(Id);
+                //await ShowConfirmDialogEliminar(Id);
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    async Task ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    void ShowTooltip(String mensaje, ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, mensaje, options);
+
+    private async Task Eliminar(int id)
+    {
+
+        try
+        {
+            Negempleado negempleado = new Negempleado();
+            negempleado.Id = id;
+            negempleado.Activo = false;
+            await GuardarRegistro(negempleado);
+        }
+        catch (Exception ex)
+        {
+            await ShowNotification(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = ex.Message, Duration = 4000 });
+        }
+
+        // Cierra la ventana de confirmación
+        DialogService.Close();
+    }
+
+    async Task ShowConfirmDialogEliminar(int idEmpleado) => await DialogService.OpenAsync("Eliminar Empleado", ds =>
+    @<RadzenCard Style="padding: 20px;">
+        <p Style="margin-bottom: 10px;">Confirma eliminar empleado?</p>
+        <div class="row">
+            <div class="col-md-12">
+                <RadzenButton Text="Si" Click="()=> Eliminar(idEmpleado)" Style="margin-bottom: 10px; width: 150px" />
+                <RadzenButton Text="No" Click="()=> ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
+            </div>
+        </div>
+    </RadzenCard>
+    );
+
+}

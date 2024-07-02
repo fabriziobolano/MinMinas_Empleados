@@ -1,0 +1,65 @@
+﻿@page "/tipodocumento"
+@attribute [Authorize]
+
+@using PruebaMME.Models
+
+@inject NavigationManager NavigationManager
+@inject NotificationService notificationService
+@inject TooltipService tooltipService
+
+<h3>Lista de tipos de Documento</h3>
+
+@if (ListaNegtipoDocumento == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <RadzenCard Class="rz-my-12 rz-mx-auto">
+
+        <RadzenFieldset Text="Proyectos e Iniciativas">
+            <RadzenRow JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1">
+                 <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="15" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                            Data="@ListaNegtipoDocumento" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single">
+            <EmptyTemplate>
+                <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No hay datos para mostrar.</p>
+            </EmptyTemplate>
+            <Columns>
+                <RadzenDataGridColumn Property="Id" Title="ID" Frozen="true" Width="5%" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn Property="Nombre" Title="Tarea" Width="80%" />
+            </Columns>
+        </RadzenDataGrid>
+            </RadzenRow>
+        </RadzenFieldset>
+
+    </RadzenCard>
+}
+
+@code {
+    //Definición de Variables
+    List<NegtipoDocumento>? ListaNegtipoDocumento = new();
+    // Inyectar HttpClient
+    [Inject]
+    private HttpClient httpClient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ListaNegtipoDocumento = await httpClient.GetFromJsonAsync<List<NegtipoDocumento>>("https://localhost:7083/api/NegtipoDocumento");
+        }
+        catch (Exception ex)
+        {
+            notificationService.Notify(NotificationSeverity.Error, $"Error", $"Error al cargar los datos: {ex.Message}");
+        }
+        
+    }
+
+    async Task ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    void ShowTooltip(String mensaje, ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, mensaje, options);
+}
